@@ -14,20 +14,14 @@ public class TagsService(
     public async Task<List<Tag>?> GetTags()
     {
         var tags = await tagsDao.GetTags();
-        if (tags.Count > 0)
-        {
-            if (tags.Count >= 1000) return tags;
-            
-            var existingTagNames = tags.Select(t => t.Name).ToHashSet();
-            var allTags = await GetThousandTags();
-            var missingTags = allTags.Where(t => !existingTagNames.Contains(t.Name)).ToList();
-            
-            await UpdateTags(missingTags);
-            return tags;
-        }
-        tags = await UpdateTags();
+        if (tags.Count >= 1000) return tags;
         
-        return tags;
+        var existingTagNames = tags.Select(t => t.Name).ToHashSet();
+        var allTags = await GetThousandTags();
+        var missingTags = allTags.Where(t => !existingTagNames.Contains(t.Name)).ToList();
+        
+        CalculatePercent(missingTags);
+        return await UpdateTags(missingTags);
     }
 
     private static void CalculatePercent(List<Tag> tagList)
