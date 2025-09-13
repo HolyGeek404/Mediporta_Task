@@ -10,7 +10,6 @@ public static class ServiceCollectionExtension
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddTransient<ITagsDao, TagsDao>();
-        services.AddTransient<IRequestMessageBuilder, RequestMessageBuilder>();
         services.AddTransient<ITagsService, TagsService>();
         
         

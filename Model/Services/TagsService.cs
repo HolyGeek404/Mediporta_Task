@@ -9,26 +9,31 @@ namespace Model.Services;
 public class TagsService(
     ITagsDao tagsDao,
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration,
-    IRequestMessageBuilder requestMessageBuilder) : ITagsService
+    IConfiguration configuration) : ITagsService
 {
     public async Task<List<Tag>?> GetTags()
     {
         var tags = await tagsDao.GetTags();
         if (tags != null) return tags;
+        tags = [];
         
         var client = httpClientFactory.CreateClient("StackOverflow");
-        var request = requestMessageBuilder.AddBaseEndpoint($"{configuration.GetSection("SO")["BaseAddress"]}/tags")
-            .AddOrder("desc")
-            .AddPage(1)
-            .AddPageSize(5)
-            .AddSort("popular")
-            .AddSite("stackoverflow")
-            .BuildGet();
+        for (var i = 1; i <= 10; i++)
+        {
+            var request = new RequestMessageBuilder().AddBaseEndpoint($"{configuration.GetSection("SO")["BaseAddress"]}/tags")
+                .AddOrder("desc")
+                .AddPage(i)
+                .AddPageSize(100)
+                .AddSort("popular")
+                .AddSite("stackoverflow")
+                .BuildGet(configuration.GetSection("SO")["ApiKey"]!);
         
-        var response = await client.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
-        return result.Items;
+            var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
+            tags!.AddRange(result!.Items);
+        }
+        await tagsDao.SaveTags(tags!);
+        return tags;
     }
 }

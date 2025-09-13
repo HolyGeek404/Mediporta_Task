@@ -9,10 +9,13 @@ public class TagsDao(TagsContext context) : ITagsDao
 {
     public async Task<List<Tag>?> GetTags()
     {
-        var isCreated = await context.Database.EnsureCreatedAsync();
-        if (!isCreated) return null;
-        
         var tagList = await context.Tags.ToListAsync();
         return tagList;
+    }
+
+    public async Task SaveTags(List<Tag> tags)
+    {
+        await context.Tags.AddRangeAsync(tags);
+        await context.SaveChangesAsync();
     }
 }

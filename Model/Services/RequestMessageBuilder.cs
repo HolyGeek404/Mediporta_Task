@@ -2,28 +2,27 @@ using Microsoft.Extensions.Configuration;
 
 namespace Model.Services;
 
-public class RequestMessageBuilder(IConfiguration configuration) : IRequestMessageBuilder
+public class RequestMessageBuilder
 {
-    private HttpRequestMessage _request = new();
     private string? BaseEndpoint { get; set; }
     private string? Parameters { get; set; }
 
-    public HttpRequestMessage BuildGet()
+    public HttpRequestMessage BuildGet(string apiKey)
     {
+        var request = new HttpRequestMessage();
         if (BaseEndpoint != null)
         {
-            AddApiKey();
-            _request.RequestUri = new Uri(BaseEndpoint+Parameters);
+            AddApiKey(apiKey);
+            request.RequestUri = new Uri(BaseEndpoint+Parameters);
         }
         
-        _request.Method = HttpMethod.Get;
-        return _request;
+        request.Method = HttpMethod.Get;
+        return request;
     }
 
-    private void AddApiKey()
+    private void AddApiKey(string apiKey)
     {
-        var key = configuration.GetSection("SO")["ApiKey"];
-        Parameters += $"key={key}";
+        Parameters += $"key={apiKey}";
     }
     
     public RequestMessageBuilder AddBaseEndpoint(string baseEndpoint)
