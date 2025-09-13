@@ -14,7 +14,17 @@ public class TagsService(
     public async Task<List<Tag>?> GetTags()
     {
         var tags = await tagsDao.GetTags();
-        if (tags.Count > 0) return tags;
+        if (tags.Count > 0)
+        {
+            if (tags.Count >= 1000) return tags;
+            
+            var existingTagNames = tags.Select(t => t.Name).ToHashSet();
+            var allTags = await GetThousandTags();
+            var missingTags = allTags.Where(t => !existingTagNames.Contains(t.Name)).ToList();
+            
+            await UpdateTags(missingTags);
+            return tags;
+        }
         tags = await UpdateTags();
         
         return tags;
@@ -28,10 +38,24 @@ public class TagsService(
             tag.Percentage = ((double)tag.Count / totalCount) * 100;
         }
     }
-    private async Task<List<Tag>> UpdateTags()
+    private async Task<List<Tag>> UpdateTags(List<Tag>? tagList = null)
     {
-        var tags = new  List<Tag>();
+        if (tagList == null)
+        {
+            var tags = await GetThousandTags();
+            CalculatePercent(tags);
+            await tagsDao.SaveTags(tags!);
+            return tags;
+        }
+
+        await tagsDao.SaveTags(tagList!);
+        return await tagsDao.GetTags();
+    }
+
+    private async Task<List<Tag>> GetThousandTags()
+    {
         var client = httpClientFactory.CreateClient("StackOverflow");
+        var tags = new List<Tag>();
         for (var i = 1; i <= 10; i++)
         {
             var request = new RequestMessageBuilder().AddBaseEndpoint($"{configuration.GetSection("SO")["BaseAddress"]}/tags")
@@ -48,8 +72,6 @@ public class TagsService(
             var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
             tags!.AddRange(result!.Items);
         }
-        CalculatePercent(tags);
-        await tagsDao.SaveTags(tags!);
         return tags;
-    } 
+    }
 }
