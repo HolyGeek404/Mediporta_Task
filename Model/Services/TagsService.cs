@@ -14,14 +14,22 @@ public class TagsService(
     public async Task<List<Tag>?> GetTags()
     {
         var tags = await tagsDao.GetTags();
-        if (tags.Count >= 1000) return tags;
-        
-        var existingTagNames = tags.Select(t => t.Name).ToHashSet();
-        var allTags = await GetThousandTags();
-        var missingTags = allTags.Where(t => !existingTagNames.Contains(t.Name)).ToList();
-        
-        CalculatePercent(missingTags);
-        return await UpdateTags(missingTags);
+        switch (tags.Count)
+        {
+            case 0:
+                return await SaveAndReturn();
+            case < 1000:
+            {
+                var currentTagNames = tags.Select(t => t.Name).ToHashSet();
+                var tagsFromApi = await GetThousandTags();
+                var missingTags = tagsFromApi.Where(t => !currentTagNames.Contains(t.Name)).ToList();
+            
+                tags.AddRange(missingTags);
+                return await SaveAndReturn(tags);
+            }
+            default:
+                return tags;
+        }
     }
 
     private static void CalculatePercent(List<Tag> tagList)
@@ -32,7 +40,7 @@ public class TagsService(
             tag.Percentage = ((double)tag.Count / totalCount) * 100;
         }
     }
-    private async Task<List<Tag>> UpdateTags(List<Tag>? tagList = null)
+    private async Task<List<Tag>> SaveAndReturn(List<Tag>? tagList = null)
     {
         if (tagList == null)
         {
@@ -41,7 +49,8 @@ public class TagsService(
             await tagsDao.SaveTags(tags!);
             return tags;
         }
-
+        
+        CalculatePercent(tagList);
         await tagsDao.SaveTags(tagList!);
         return await tagsDao.GetTags();
     }
