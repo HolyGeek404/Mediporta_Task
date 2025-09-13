@@ -7,7 +7,7 @@ namespace Model.DataAccess;
 
 public class TagsDao(TagsContext context) : ITagsDao
 {
-    public async Task<List<Tag>?> GetTags()
+    public async Task<List<Tag>> GetTags()
     {
         var tagList = await context.Tags.ToListAsync();
         return tagList;

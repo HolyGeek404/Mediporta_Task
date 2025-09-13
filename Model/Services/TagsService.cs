@@ -14,12 +14,20 @@ public class TagsService(
     public async Task<List<Tag>?> GetTags()
     {
         var tags = await tagsDao.GetTags();
-        if (tags != null) return tags;
+        if (tags.Count > 0) return tags;
         tags = await UpdateTags();
         
         return tags;
     }
 
+    private static void CalculatePercent(List<Tag> tagList)
+    {
+        var totalCount = tagList.Sum(t => t.Count);
+        foreach (var tag in tagList)
+        {
+            tag.Percentage = ((double)tag.Count / totalCount) * 100;
+        }
+    }
     private async Task<List<Tag>> UpdateTags()
     {
         var tags = new  List<Tag>();
@@ -40,6 +48,7 @@ public class TagsService(
             var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
             tags!.AddRange(result!.Items);
         }
+        CalculatePercent(tags);
         await tagsDao.SaveTags(tags!);
         return tags;
     } 
