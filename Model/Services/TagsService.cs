@@ -15,8 +15,14 @@ public class TagsService(
     {
         var tags = await tagsDao.GetTags();
         if (tags != null) return tags;
-        tags = [];
+        tags = await UpdateTags();
         
+        return tags;
+    }
+
+    private async Task<List<Tag>> UpdateTags()
+    {
+        var tags = new  List<Tag>();
         var client = httpClientFactory.CreateClient("StackOverflow");
         for (var i = 1; i <= 10; i++)
         {
@@ -30,10 +36,11 @@ public class TagsService(
         
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
+            
             var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
             tags!.AddRange(result!.Items);
         }
         await tagsDao.SaveTags(tags!);
         return tags;
-    }
+    } 
 }
