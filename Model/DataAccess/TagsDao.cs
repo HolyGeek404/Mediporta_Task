@@ -37,6 +37,10 @@ public class TagsDao(TagsContext context) : ITagsDao
         return tagList;
     }
 
+    public async Task<List<Tag>> GetAllTags()
+    {
+        return await context.Tags.ToListAsync();
+    }
     public async Task SaveTags(List<Tag> tags)
     {
         await context.Tags.AddRangeAsync(tags);

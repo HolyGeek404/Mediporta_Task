@@ -5,5 +5,6 @@ namespace Model.Services.Interfaces;
 
 public interface ITagsService
 {
-    Task<List<Tag>?> GetTags(GetTagsQuery request, CancellationToken cancellationToken);
+    Task<List<Tag>> GetTags(GetTagsQuery request, CancellationToken cancellationToken);
+    Task UpdateTags();
 }

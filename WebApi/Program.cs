@@ -1,6 +1,8 @@
 using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Model.DataAccess.Context;
+using Model.Features.Queries.GetTags;
+using Model.Services.Interfaces;
 using WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,4 +31,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var tagsService = scope.ServiceProvider.GetRequiredService<ITagsService>();
+    await tagsService.UpdateTags();
+}
+
 app.Run();

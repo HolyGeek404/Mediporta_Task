@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Configuration;
 using Model.Features.Queries.GetTags;
 
 namespace Model.Services;
 
-public class RequestMessageBuilder
+public class RequestMessageBuilder(IConfiguration configuration)
 {
     private string BaseEndpoint { get; set; }
     private string Parameters { get; set; }
@@ -16,10 +17,10 @@ public class RequestMessageBuilder
         AddPage(query.Page);
         AddPageSize(query.PageSize);
         AddSort(query.Sort);
-        AddSort(GetTagsQuery.Site);
+        AddSite(GetTagsQuery.Site);
         AddApiKey(apiKey);
         
-        request.RequestUri = new Uri(BaseEndpoint + Parameters);
+        request.RequestUri = new Uri(configuration.GetSection("SO")["BaseAddress"]+BaseEndpoint + Parameters);
         request.Method = HttpMethod.Get;
         return request;
     }
@@ -29,10 +30,9 @@ public class RequestMessageBuilder
         Parameters += $"key={apiKey}";
     }
 
-    private RequestMessageBuilder AddBaseEndpoint(string baseEndpoint)
+    private void AddBaseEndpoint(string baseEndpoint)
     {
         BaseEndpoint = $"{baseEndpoint}?";
-        return this;
     }
 
     private void AddPage(int pageNumber)

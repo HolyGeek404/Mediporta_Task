@@ -6,5 +6,6 @@ namespace Model.DataAccess.Interfaces;
 public interface ITagsDao
 {
     Task<List<Tag>> GetTags(GetTagsQuery query);
+    Task<List<Tag>> GetAllTags();
     Task SaveTags(List<Tag> tags);
 }

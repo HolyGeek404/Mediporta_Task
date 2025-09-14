@@ -9,7 +9,7 @@ namespace WebApi.Controllers;
 public class TagsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Get(GetTagsQuery  query)
+    public async Task<IActionResult> Get([FromBody] GetTagsQuery query)
     {
         var result = await mediator.Send(query);
         return Ok(result);
