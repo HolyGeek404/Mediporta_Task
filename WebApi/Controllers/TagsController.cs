@@ -1,16 +1,17 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Model.Services;
+using Model.Features.Queries.GetTags;
 
 namespace WebApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class TagsController(ITagsService tagsService) : ControllerBase
+public class TagsController(IMediator mediator) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetTags()
+    [HttpPost]
+    public async Task<IActionResult> Get(GetTagsQuery  query)
     {
-        var result = await tagsService.GetTags();
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 }

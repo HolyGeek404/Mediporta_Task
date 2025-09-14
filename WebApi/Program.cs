@@ -9,6 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddServices();
+builder.Services.AddMediatRConfig();
 builder.Services.AddStackOverflowApiClient(builder.Configuration);
 
 builder.Configuration.AddAzureKeyVault(

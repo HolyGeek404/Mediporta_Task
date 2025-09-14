@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Model.DataAccess.Entities;
 using Model.DataAccess.Interfaces;
 using Model.DataTransfer;
+using Model.Features.Queries.GetTags;
+using Model.Services.Interfaces;
 
 namespace Model.Services;
 
@@ -11,25 +13,14 @@ public class TagsService(
     IHttpClientFactory httpClientFactory,
     IConfiguration configuration) : ITagsService
 {
-    public async Task<List<Tag>?> GetTags()
+    public async Task<List<Tag>?> GetTags(GetTagsQuery query, CancellationToken cancellationToken)
     {
-        var tags = await tagsDao.GetTags();
-        switch (tags.Count)
+        var tags = await tagsDao.GetTags(query);
+        if (tags.Count == 0)
         {
-            case 0:
-                return await SaveAndReturn();
-            case < 1000:
-            {
-                var currentTagNames = tags.Select(t => t.Name).ToHashSet();
-                var tagsFromApi = await GetThousandTags();
-                var missingTags = tagsFromApi.Where(t => !currentTagNames.Contains(t.Name)).ToList();
-            
-                tags.AddRange(missingTags);
-                return await SaveAndReturn(tags);
-            }
-            default:
-                return tags;
+            return await SaveAndReturn(query);
         }
+        return tags;
     }
 
     private static void CalculatePercent(List<Tag> tagList)
@@ -40,11 +31,11 @@ public class TagsService(
             tag.Percentage = ((double)tag.Count / totalCount) * 100;
         }
     }
-    private async Task<List<Tag>> SaveAndReturn(List<Tag>? tagList = null)
+    private async Task<List<Tag>> SaveAndReturn(GetTagsQuery query,List<Tag>? tagList = null)
     {
         if (tagList == null)
         {
-            var tags = await GetThousandTags();
+            var tags = await GetThousandTags(query);
             CalculatePercent(tags);
             await tagsDao.SaveTags(tags!);
             return tags;
@@ -52,24 +43,18 @@ public class TagsService(
         
         CalculatePercent(tagList);
         await tagsDao.SaveTags(tagList!);
-        return await tagsDao.GetTags();
+        return await tagsDao.GetTags(query);
     }
 
-    private async Task<List<Tag>> GetThousandTags()
+    private async Task<List<Tag>> GetThousandTags(GetTagsQuery query)
     {
         var client = httpClientFactory.CreateClient("StackOverflow");
         var tags = new List<Tag>();
         for (var i = 1; i <= 10; i++)
         {
-            var request = new RequestMessageBuilder().AddBaseEndpoint($"{configuration.GetSection("SO")["BaseAddress"]}/tags")
-                .AddOrder("desc")
-                .AddPage(i)
-                .AddPageSize(100)
-                .AddSort("popular")
-                .AddSite("stackoverflow")
-                .BuildGet(configuration.GetSection("SO")["ApiKey"]!);
+            var requestMessage = new RequestMessageBuilder().BuildGet(query,configuration.GetSection("SO")["ApiKey"]!);
         
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(requestMessage);
             response.EnsureSuccessStatusCode();
             
             var result = await response.Content.ReadFromJsonAsync<TagsResponse>();

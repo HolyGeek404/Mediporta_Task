@@ -2,14 +2,38 @@ using Microsoft.EntityFrameworkCore;
 using Model.DataAccess.Context;
 using Model.DataAccess.Entities;
 using Model.DataAccess.Interfaces;
+using Model.Features.Queries.GetTags;
 
 namespace Model.DataAccess;
 
 public class TagsDao(TagsContext context) : ITagsDao
 {
-    public async Task<List<Tag>> GetTags()
+    public async Task<List<Tag>> GetTags(GetTagsQuery  query)
     {
-        var tagList = await context.Tags.ToListAsync();
+        var queryable = context.Tags.AsNoTracking();
+
+        switch (query.Sort)
+        {
+            case "name":
+                queryable = query.Order == "desc"
+                    ? queryable.OrderByDescending(x => x.Name)
+                    : queryable.OrderBy(x => x.Name);
+                break;
+            case "percentage":
+                queryable = query.Order == "desc"
+                    ? queryable.OrderByDescending(x => x.Percentage)
+                    : queryable.OrderBy(x => x.Percentage);
+                break;
+            default:
+                queryable = queryable.OrderBy(x => x.Name);
+                break;
+        }
+
+        var tagList = await queryable
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToListAsync();
+
         return tagList;
     }
 

@@ -1,19 +1,25 @@
+using Model.Features.Queries.GetTags;
+
 namespace Model.Services;
 
 public class RequestMessageBuilder
 {
-    private string? BaseEndpoint { get; set; }
-    private string? Parameters { get; set; }
+    private string BaseEndpoint { get; set; }
+    private string Parameters { get; set; }
 
-    public HttpRequestMessage BuildGet(string apiKey)
+    public HttpRequestMessage BuildGet(GetTagsQuery query, string apiKey)
     {
         var request = new HttpRequestMessage();
-        if (BaseEndpoint != null)
-        {
-            AddApiKey(apiKey);
-            request.RequestUri = new Uri(BaseEndpoint+Parameters);
-        }
+
+        AddBaseEndpoint(GetTagsQuery.BaseEndpoint);
+        AddOrder(query.Order);
+        AddPage(query.Page);
+        AddPageSize(query.PageSize);
+        AddSort(query.Sort);
+        AddSort(GetTagsQuery.Site);
+        AddApiKey(apiKey);
         
+        request.RequestUri = new Uri(BaseEndpoint + Parameters);
         request.Method = HttpMethod.Get;
         return request;
     }
@@ -22,40 +28,35 @@ public class RequestMessageBuilder
     {
         Parameters += $"key={apiKey}";
     }
-    
-    public RequestMessageBuilder AddBaseEndpoint(string baseEndpoint)
+
+    private RequestMessageBuilder AddBaseEndpoint(string baseEndpoint)
     {
-        BaseEndpoint ??= $"{baseEndpoint}?";
+        BaseEndpoint = $"{baseEndpoint}?";
         return this;
     }
-    
-    public RequestMessageBuilder AddPage(int pageNumber)
+
+    private void AddPage(int pageNumber)
     {
         Parameters += $"page={pageNumber}&";
-        return this;
     }
 
-    public RequestMessageBuilder AddPageSize(int pageSize)
+    private void AddPageSize(int pageSize)
     {
         Parameters += $"pagesize={pageSize}&";
-        return this;
     }
-    
-    public RequestMessageBuilder AddSort(string sort)
+
+    private void AddSort(string sort)
     {
         Parameters += $"sort={sort}&";
-        return this;
     }
 
-    public RequestMessageBuilder AddOrder(string order)
+    private void AddOrder(string order)
     {
         Parameters += $"order={order}&";
-        return this;
     }
 
-    public RequestMessageBuilder AddSite(string site)
+    private void AddSite(string site)
     {
         Parameters += $"site={site}&";
-        return this;
     }
 }
