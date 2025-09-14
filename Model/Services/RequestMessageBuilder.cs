@@ -8,19 +8,14 @@ public class RequestMessageBuilder(IConfiguration configuration)
     private string BaseEndpoint { get; set; }
     private string Parameters { get; set; }
 
-    public HttpRequestMessage BuildGet(GetTagsQuery query, string apiKey)
+    public HttpRequestMessage BuildGet(string baseAddress, string apiKey)
     {
         var request = new HttpRequestMessage();
-
-        AddBaseEndpoint(GetTagsQuery.BaseEndpoint);
-        AddOrder(query.Order);
-        AddPage(query.Page);
-        AddPageSize(query.PageSize);
-        AddSort(query.Sort);
-        AddSite(GetTagsQuery.Site);
+        
+        AddSite("stackoverflow");
         AddApiKey(apiKey);
         
-        request.RequestUri = new Uri(configuration.GetSection("SO")["BaseAddress"]+BaseEndpoint + Parameters);
+        request.RequestUri = new Uri(baseAddress + BaseEndpoint + Parameters);
         request.Method = HttpMethod.Get;
         return request;
     }
@@ -30,29 +25,34 @@ public class RequestMessageBuilder(IConfiguration configuration)
         Parameters += $"key={apiKey}";
     }
 
-    private void AddBaseEndpoint(string baseEndpoint)
+    public RequestMessageBuilder AddBaseEndpoint(string baseEndpoint)
     {
         BaseEndpoint = $"{baseEndpoint}?";
+        return this;
     }
 
-    private void AddPage(int pageNumber)
+    public RequestMessageBuilder AddPage(int pageNumber)
     {
         Parameters += $"page={pageNumber}&";
+        return this;
     }
 
-    private void AddPageSize(int pageSize)
+    public RequestMessageBuilder AddPageSize(int pageSize)
     {
         Parameters += $"pagesize={pageSize}&";
+        return this;
     }
 
-    private void AddSort(string sort)
+    public RequestMessageBuilder AddSort(string sort)
     {
         Parameters += $"sort={sort}&";
+        return this;
     }
 
-    private void AddOrder(string order)
+    public RequestMessageBuilder AddOrder(string order)
     {
         Parameters += $"order={order}&";
+        return this;
     }
 
     private void AddSite(string site)
