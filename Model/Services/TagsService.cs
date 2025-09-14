@@ -64,8 +64,7 @@ public class TagsService(
         var tags = new List<Tag>();
         for (var i = 1; i <= 10; i++)
         {
-            var requestMessage = new RequestMessageBuilder(configuration)
-                .AddBaseEndpoint(GetTagsQuery.BaseEndpoint)
+            var requestMessage = new RequestMessageBuilder()
                 .AddOrder(order)
                 .AddPage(i)
                 .AddPageSize(pageSize)

@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Configuration;
-using Model.Features.Queries.GetTags;
-
 namespace Model.Services;
 
-public class RequestMessageBuilder(IConfiguration configuration)
+public class RequestMessageBuilder()
 {
     private string BaseEndpoint { get; set; }
     private string Parameters { get; set; }
@@ -11,7 +8,8 @@ public class RequestMessageBuilder(IConfiguration configuration)
     public HttpRequestMessage BuildGet(string baseAddress, string apiKey)
     {
         var request = new HttpRequestMessage();
-        
+
+        AddBaseEndpoint("tags");
         AddSite("stackoverflow");
         AddApiKey(apiKey);
         
@@ -25,10 +23,9 @@ public class RequestMessageBuilder(IConfiguration configuration)
         Parameters += $"key={apiKey}";
     }
 
-    public RequestMessageBuilder AddBaseEndpoint(string baseEndpoint)
+    private void AddBaseEndpoint(string baseEndpoint)
     {
         BaseEndpoint = $"{baseEndpoint}?";
-        return this;
     }
 
     public RequestMessageBuilder AddPage(int pageNumber)
