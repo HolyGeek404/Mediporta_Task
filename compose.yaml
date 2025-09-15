@@ -15,7 +15,8 @@
       AZURE_TENANT_ID: "e7b4669a-95b7-468d-8c55-4ba35609e82b"
       AZURE_CLIENT_ID: "2e0b04c8-b583-4aee-83c1-72bcebd80e49"
       AZURE_CLIENT_SECRET: "NzE8Q~-nr2jJ1HrOsuG1k1bwZT2zIc6pBo~tob8O"
-
+#na potrzeby zadania rekrutacyjengo, secrety zostawie w tym pliku
+#prawidlowym podejsciem byloby przechowywanie ich w zewnetrznym pliku .env
   tagapi:
     image: tagapi
     build:
