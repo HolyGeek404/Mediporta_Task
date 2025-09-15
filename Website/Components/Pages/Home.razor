@@ -1,0 +1,132 @@
+﻿@page "/"
+@using Model.DataAccess.Entities
+
+<PageTitle>Tabela Tagów</PageTitle>
+
+<h3 class="mb-3">Tabela Tagów z paginacją i sortowaniem (Bootstrap 5)</h3>
+
+<table class="table table-striped table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th @onclick="() => SortBy(nameof(Tag.TagId))" style="cursor:pointer">
+                TagId @(RenderSortIcon(nameof(Tag.TagId)))
+            </th>
+            <th @onclick="() => SortBy(nameof(Tag.Name))" style="cursor:pointer">
+                Nazwa @(RenderSortIcon(nameof(Tag.Name)))
+            </th>
+            <th @onclick="() => SortBy(nameof(Tag.Count))" style="cursor:pointer">
+                Licznik @(RenderSortIcon(nameof(Tag.Count)))
+            </th>
+            <th @onclick="() => SortBy(nameof(Tag.Percentage))" style="cursor:pointer">
+                Procent @(RenderSortIcon(nameof(Tag.Percentage)))
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tag in PaginatedTags)
+        {
+            <tr>
+                <td>@tag.TagId</td>
+                <td>@tag.Name</td>
+                <td>@tag.Count</td>
+                <td>@($"{tag.Percentage:F2}%")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+            <button class="page-link" @onclick="PrevPage">Poprzednia</button>
+        </li>
+
+        @for (int i = 1; i <= TotalPages; i++)
+        {
+            var pageNumber = i;
+            <li class="page-item @(CurrentPage == pageNumber ? "active" : "")">
+                <button class="page-link" @onclick="(() => GoToPage(pageNumber))">@pageNumber</button>
+            </li>
+        }
+
+        <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+            <button class="page-link" @onclick="NextPage">Następna</button>
+        </li>
+    </ul>
+</nav>
+
+@code {
+
+    private List<Tag> Tags = new();
+    private int CurrentPage = 1;
+    private int PageSize = 5;
+
+    private string SortColumn = nameof(Tag.TagId);
+    private bool SortDescending = false;
+
+    private IEnumerable<Tag> SortedTags =>
+        SortColumn switch
+        {
+            nameof(Tag.Name) => SortDescending ? Tags.OrderByDescending(t => t.Name) : Tags.OrderBy(t => t.Name),
+            nameof(Tag.Count) => SortDescending ? Tags.OrderByDescending(t => t.Count) : Tags.OrderBy(t => t.Count),
+            nameof(Tag.Percentage) => SortDescending ? Tags.OrderByDescending(t => t.Percentage) : Tags.OrderBy(t => t.Percentage),
+            _ => SortDescending ? Tags.OrderByDescending(t => t.TagId) : Tags.OrderBy(t => t.TagId)
+        };
+
+    private IEnumerable<Tag> PaginatedTags => SortedTags.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+
+    private int TotalPages => (int)Math.Ceiling(Tags.Count / (double)PageSize);
+
+    protected override void OnInitialized()
+    {
+        var rnd = new Random();
+        for (int i = 1; i <= 42; i++)
+        {
+            Tags.Add(new Tag
+            {
+                TagId = i,
+                Name = $"Tag{i}",
+                Count = rnd.Next(1, 1000),
+                Percentage = rnd.NextDouble() * 100
+            });
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (CurrentPage > 1)
+            CurrentPage--;
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+            CurrentPage++;
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page < 1) page = 1;
+        if (page > TotalPages) page = TotalPages;
+        CurrentPage = page;
+    }
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+            SortDescending = !SortDescending;
+        else
+        {
+            SortColumn = column;
+            SortDescending = false;
+        }
+        CurrentPage = 1;
+    }
+
+    private MarkupString RenderSortIcon(string column)
+    {
+        if (SortColumn != column) return new MarkupString("");
+        var icon = SortDescending ? "↓" : "↑";
+        return new MarkupString($"<span>{icon}</span>");
+    }
+}
