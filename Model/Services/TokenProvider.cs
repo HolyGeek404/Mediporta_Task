@@ -12,23 +12,11 @@ public class TokenProvider(IConfiguration configuration) : ITokenProvider
         var clientId = azure["ClientId"];
         var clientSecret = azure["ClientSecret"];
         var authority = $"https://login.microsoftonline.com/{tenantId}";
-
-        var app = ConfidentialClientApplicationBuilder.Create(clientId)
-            .WithClientSecret(clientSecret)
-            .WithAuthority(new Uri(authority))
-            .Build();
-
-        try
-        {
-            var result =  app.AcquireTokenForClient([scope]).ExecuteAsync().Result;
-            return result.AccessToken;
         
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-        return "";
+        var app = ConfidentialClientApplicationBuilder.Create(clientId).WithClientSecret(clientSecret)
+            .WithAuthority(new Uri(authority)).Build();
+        
+        var result = await app.AcquireTokenForClient([scope]).ExecuteAsync();
+        return result.AccessToken;
     }
 }

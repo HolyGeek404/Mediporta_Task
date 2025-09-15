@@ -6,7 +6,7 @@
 @inject ITagClient TagClient
 <PageTitle>Tabela Tagów</PageTitle>
 
-<h3 class="mb-3">Tabela Tagów z paginacją, sortowaniem i wyborem ilości wierszy</h3>
+<h3 class="mb-3">Tabela Tagów</h3>
 
 <div class="mb-3 d-flex align-items-center">
     <label class="me-2">Wiersze na stronę:</label>
@@ -79,15 +79,7 @@
     private IEnumerable<Tag> SortedTags =>
         SortColumn switch
         {
-            nameof(Tag.Name) => SortDescending
-                ? Tags.OrderByDescending(t => {
-                    var k = GetNameKey(t.Name);
-                    return (k.hasNumber ? 0 : 1, k.number, t.Name);
-                })
-                : Tags.OrderBy(t => {
-                    var k = GetNameKey(t.Name);
-                    return (k.hasNumber ? 0 : 1, k.number, t.Name);
-                }),
+            nameof(Tag.Name) => SortDescending ? Tags.OrderByDescending(t => t.Name) : Tags.OrderBy(t => t.Name),
             nameof(Tag.Count) => SortDescending ? Tags.OrderByDescending(t => t.Count) : Tags.OrderBy(t => t.Count),
             nameof(Tag.Percentage) => SortDescending ? Tags.OrderByDescending(t => t.Percentage) : Tags.OrderBy(t => t.Percentage),
             _ => SortDescending ? Tags.OrderByDescending(t => t.TagId) : Tags.OrderBy(t => t.TagId)
@@ -98,7 +90,7 @@
 
     private int TotalPages => (int)Math.Ceiling(Tags.Count / (double)PageSize);
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var query = new GetTagsQuery
         {
@@ -107,18 +99,7 @@
             Page = 1,
             PageSize = 10
         };
-        var a = TagClient.GetTags(query).Result;
-        var rnd = new Random();
-        for (int i = 1; i <= 42; i++)
-        {
-            Tags.Add(new Tag
-            {
-                TagId = i,
-                Name = $"Tag{i}",
-                Count = rnd.Next(1, 1000),
-                Percentage = rnd.NextDouble() * 100
-            });
-        }
+        Tags = await TagClient.GetTags(query);
     }
 
     private void PrevPage()
@@ -155,19 +136,5 @@
         if (SortColumn != column) return new MarkupString("");
         var icon = SortDescending ? "↓" : "↑";
         return new MarkupString($"<span>{icon}</span>");
-    }
-
-    private (bool hasNumber, int number) GetNameKey(string name)
-    {
-        if (string.IsNullOrEmpty(name)) return (false, int.MaxValue);
-        var m = Regex.Match(name, @"(\d+)$");
-        if (m.Success && int.TryParse(m.Value, out int n))
-            return (true, n);
-        return (false, int.MaxValue);
-    }
-
-    private void RowsPerPageChanged(ChangeEventArgs e)
-    {
-        CurrentPage = 1; // resetujemy do pierwszej strony po zmianie liczby wierszy
     }
 }
