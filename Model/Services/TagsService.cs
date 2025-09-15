@@ -12,7 +12,8 @@ namespace Model.Services;
 public class TagsService(
     ITagsDao tagsDao,
     IHttpClientFactory httpClientFactory,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    IRequestMessageBuilder requestMessageBuilder)
     : ITagsService
 {
     public async Task<List<Tag>> GetTags(GetTagsQuery query, CancellationToken cancellationToken)
@@ -20,7 +21,7 @@ public class TagsService(
         var tags = await tagsDao.GetTags(query);
         if (tags.Count == 0)
         {
-            return await GetThousandTags(query.Order, query.PageSize, query.Sort);
+            return await GetTagsFromSoApi(query.Page, query.Order, query.PageSize, query.Sort);
         }
 
         return tags;
@@ -33,7 +34,11 @@ public class TagsService(
         {
             var currentTagNames = allTags.Select(t => t.Name).ToHashSet();
             var command = new RefreshTagsCommand();
-            var tagsFromApi = await GetThousandTags(command.Order, command.PageSize,command.Sort);
+            var tagsFromApi = new List<Tag>();
+            for (var i = 1; i <= 10; i++)
+            {
+                tagsFromApi.AddRange(await GetTagsFromSoApi(i, command.Order, command.PageSize,command.Sort));
+            }
             var missingTags = tagsFromApi.Where(t => !currentTagNames.Contains(t.Name)).ToList();
             allTags.AddRange(missingTags);
             CalculatePercent(allTags);
@@ -43,7 +48,12 @@ public class TagsService(
 
     public async Task<List<Tag>> RefreshTags(RefreshTagsCommand  refreshTagsCommand)
     {
-        var tags = await GetThousandTags(refreshTagsCommand.Order, refreshTagsCommand.PageSize, refreshTagsCommand.Sort);
+        await tagsDao.DeleteAllTags();
+        var tags = new List<Tag>();
+        for (var i = 1; i <= 10; i++)
+        {
+            tags.AddRange(await GetTagsFromSoApi(refreshTagsCommand.Page , refreshTagsCommand.Order, refreshTagsCommand.PageSize, refreshTagsCommand.Sort));
+        }
         CalculatePercent(tags);
         await tagsDao.SaveTags(tags);
         return tags;
@@ -58,25 +68,21 @@ public class TagsService(
         }
     }
     
-    private async Task<List<Tag>> GetThousandTags(string order, int pageSize, string sort)
+    private async Task<List<Tag>> GetTagsFromSoApi(int page,string order, int pageSize, string sort)
     {
         var client = httpClientFactory.CreateClient("StackOverflow");
         var tags = new List<Tag>();
-        for (var i = 1; i <= 10; i++)
-        {
-            var requestMessage = new RequestMessageBuilder()
-                .AddOrder(order)
-                .AddPage(i)
-                .AddPageSize(pageSize)
-                .AddSort(sort)
-                .BuildGet(configuration.GetSection("SO")["BaseAddress"]!,
-                    configuration.GetSection("SO")["ApiKey"]!);
-            
-            var response = await client.SendAsync(requestMessage);
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
-            tags!.AddRange(result!.Items);
-        }
+        
+        var apiKey = configuration.GetSection("SO")["ApiKey"];
+        var url = UrlBuilderHelper.BuildStackOverflowTagUrl(page,pageSize,order,sort,apiKey!);
+        var requestMessage = requestMessageBuilder.BuildGet(url);
+        
+        var response = await client.SendAsync(requestMessage);
+        response.EnsureSuccessStatusCode();
+        
+        var result = await response.Content.ReadFromJsonAsync<TagsResponse>();
+        tags!.AddRange(result!.Items);
+        
 
         return tags;
     }

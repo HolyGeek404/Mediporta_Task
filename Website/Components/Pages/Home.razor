@@ -1,8 +1,9 @@
 ﻿@page "/"
-@using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
 @using Model.DataAccess.Entities
-
+@using Model.Features.Queries.GetTags
+@using Website.Api
+@inject ITagClient TagClient
 <PageTitle>Tabela Tagów</PageTitle>
 
 <h3 class="mb-3">Tabela Tagów z paginacją, sortowaniem i wyborem ilości wierszy</h3>
@@ -99,6 +100,14 @@
 
     protected override void OnInitialized()
     {
+        var query = new GetTagsQuery
+        {
+            Order = "desc",
+            Sort = "name",
+            Page = 1,
+            PageSize = 10
+        };
+        var a = TagClient.GetTags(query).Result;
         var rnd = new Random();
         for (int i = 1; i <= 42; i++)
         {

@@ -36,7 +36,6 @@ public class TagsDao(TagsContext context) : ITagsDao
 
         return tagList;
     }
-
     public async Task<List<Tag>> GetAllTags()
     {
         return await context.Tags.ToListAsync();
@@ -45,5 +44,10 @@ public class TagsDao(TagsContext context) : ITagsDao
     {
         await context.Tags.AddRangeAsync(tags);
         await context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAllTags()
+    {
+       await context.Database.ExecuteSqlRawAsync("DELETE FROM Tags");
     }
 }

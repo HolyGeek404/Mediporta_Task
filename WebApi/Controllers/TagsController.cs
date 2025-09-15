@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Model.Features.Commands.RefreshTags;
 using Model.Features.Queries.GetTags;
@@ -10,6 +11,7 @@ namespace WebApi.Controllers;
 public class TagsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "GetTags")]
     public async Task<IActionResult> Get([FromQuery]GetTagsQuery query)
     {
         var result = await mediator.Send(query);
@@ -18,6 +20,7 @@ public class TagsController(IMediator mediator) : ControllerBase
     
     [HttpPost]
     [Route("refresh")]
+    [Authorize(Roles = "RefreshTags")]
     public async Task<IActionResult> RefreshTags()
     {
         var result = await mediator.Send(new RefreshTagsCommand());

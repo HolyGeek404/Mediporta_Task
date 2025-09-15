@@ -1,59 +1,19 @@
+using System.Net.Http.Headers;
+
 namespace Model.Services;
 
-public class RequestMessageBuilder()
+public class RequestMessageBuilder(ITokenProvider tokenProvider) : IRequestMessageBuilder
 {
-    private string BaseEndpoint { get; set; }
-    private string Parameters { get; set; }
-
-    public HttpRequestMessage BuildGet(string baseAddress, string apiKey)
+    public HttpRequestMessage BuildGet(string endpoint)
     {
-        var request = new HttpRequestMessage();
-
-        AddBaseEndpoint("tags");
-        AddSite("stackoverflow");
-        AddApiKey(apiKey);
-        
-        request.RequestUri = new Uri(baseAddress + BaseEndpoint + Parameters);
-        request.Method = HttpMethod.Get;
+        var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
         return request;
     }
-
-    private void AddApiKey(string apiKey)
+    public async Task<HttpRequestMessage> BuildGet(string scope, string endpoint)
     {
-        Parameters += $"key={apiKey}";
-    }
-
-    private void AddBaseEndpoint(string baseEndpoint)
-    {
-        BaseEndpoint = $"{baseEndpoint}?";
-    }
-
-    public RequestMessageBuilder AddPage(int pageNumber)
-    {
-        Parameters += $"page={pageNumber}&";
-        return this;
-    }
-
-    public RequestMessageBuilder AddPageSize(int pageSize)
-    {
-        Parameters += $"pagesize={pageSize}&";
-        return this;
-    }
-
-    public RequestMessageBuilder AddSort(string sort)
-    {
-        Parameters += $"sort={sort}&";
-        return this;
-    }
-
-    public RequestMessageBuilder AddOrder(string order)
-    {
-        Parameters += $"order={order}&";
-        return this;
-    }
-
-    private void AddSite(string site)
-    {
-        Parameters += $"site={site}&";
+        var token = await tokenProvider.GetAccessToken(scope);
+        var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return request;
     }
 }

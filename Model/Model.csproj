@@ -25,4 +25,10 @@
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Microsoft.Identity.Client">
+        <HintPath>..\..\..\.nuget\packages\microsoft.identity.client\4.76.0\lib\net8.0\Microsoft.Identity.Client.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

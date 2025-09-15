@@ -14,6 +14,8 @@ public static class ServiceCollectionExtension
     {
         services.AddTransient<ITagsDao, TagsDao>();
         services.AddTransient<ITagsService, TagsService>();
+        services.AddTransient<ITokenProvider, TokenProvider>();
+        services.AddTransient<IRequestMessageBuilder, RequestMessageBuilder>();
         
         return services;
     }

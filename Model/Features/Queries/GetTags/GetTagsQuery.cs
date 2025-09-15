@@ -5,7 +5,6 @@ namespace Model.Features.Queries.GetTags;
 
 public record GetTagsQuery : IRequest<List<Tag>>
 {
-    public const string BaseEndpoint = "tags";
     public string Order { get; set; } = string.Empty;
     public int Page { get; set; }
     public int PageSize { get; set; }

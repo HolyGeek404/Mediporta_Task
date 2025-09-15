@@ -1,5 +1,7 @@
 using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
 using Model.DataAccess.Context;
 using Model.Features.Queries.GetTags;
 using Model.Services.Interfaces;
@@ -14,13 +16,14 @@ builder.Services.AddServices();
 builder.Services.AddMediatRConfig();
 builder.Services.AddStackOverflowApiClient(builder.Configuration);
 
+var azureAd = builder.Configuration.GetSection("AzureAd");
 builder.Configuration.AddAzureKeyVault(
-    new Uri(builder.Configuration.GetSection("AzureAd")["KvUrl"]!),
+    new Uri(azureAd["KvUrl"]!),
     new DefaultAzureCredential());
 
-builder.Services.AddDbContext<TagsContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Local")));
-
+builder.Services.AddDbContext<TagsContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("Local")));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(azureAd);
+ 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
