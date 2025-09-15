@@ -1,0 +1,31 @@
+﻿services:
+  website:
+    image: tagwebsite
+    build:
+      context: ./Website
+      dockerfile: Dockerfile
+    ports:
+      - "24091:24091"
+    depends_on:
+      - tagapi
+    environment:
+      IsDocker: "True"
+      ASPNETCORE_URLS: "http://+:24091"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      AZURE_TENANT_ID: "e7b4669a-95b7-468d-8c55-4ba35609e82b"
+      AZURE_CLIENT_ID: "2e0b04c8-b583-4aee-83c1-72bcebd80e49"
+      AZURE_CLIENT_SECRET: "NzE8Q~-nr2jJ1HrOsuG1k1bwZT2zIc6pBo~tob8O"
+
+  tagapi:
+    image: tagapi
+    build:
+      context: ./WebApi
+      dockerfile: Dockerfile
+    ports:
+      - "5154:5154"
+    environment:
+      ASPNETCORE_URLS: "http://+:5154"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      AZURE_TENANT_ID: "e7b4669a-95b7-468d-8c55-4ba35609e82b"
+      AZURE_CLIENT_ID: "692b4127-dd8f-46d0-bdca-04e94b7a3e64"
+      AZURE_CLIENT_SECRET: "Jv08Q~yrYJXi2WWOJ.43JG8C5PoMcdpqeIT9Gczb"

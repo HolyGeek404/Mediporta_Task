@@ -1,24 +1,15 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
+﻿#Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["Website/Website.csproj", "Website/"]
-COPY ["Model/Model.csproj", "Model/"]
-RUN dotnet restore "Website/Website.csproj"
-COPY . .
-WORKDIR "/src/Website"
-RUN dotnet build "./Website.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Website.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY Website/ Website/
+COPY Model/ Model/
+
+RUN dotnet restore "Website/Website.csproj"
+RUN dotnet publish "Website/Website.csproj" -c Release -o /app/publish --no-restore
+
+#Final Stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Website.dll"]

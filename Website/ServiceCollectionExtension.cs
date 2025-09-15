@@ -19,7 +19,18 @@ public static class ServiceCollectionExtension
     {
         services.AddHttpClient("TagClient",client =>
         {
-            client.BaseAddress = new Uri(configuration.GetSection("TagApi")["BaseAddress"]!);
+            var isDocker = Environment.GetEnvironmentVariable("IsDocker")!;
+            string apiUrl;
+            if (!string.IsNullOrEmpty(isDocker) && isDocker.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                apiUrl = configuration.GetSection("TagApi")["DockerAddress"]!;
+            }
+            else
+            {
+                apiUrl = configuration.GetSection("TagApi")["BaseAddress"]!;
+            }
+
+            client.BaseAddress = new Uri(apiUrl);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         });

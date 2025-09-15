@@ -23,12 +23,7 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
       <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="Microsoft.Identity.Client">
-        <HintPath>..\..\..\.nuget\packages\microsoft.identity.client\4.76.0\lib\net8.0\Microsoft.Identity.Client.dll</HintPath>
-      </Reference>
+      <PackageReference Include="Microsoft.Identity.Client" Version="4.77.0" />
     </ItemGroup>
 
 </Project>

@@ -37,6 +37,8 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<TagsContext>();
+    db.Database.EnsureCreated();
     var tagsService = scope.ServiceProvider.GetRequiredService<ITagsService>();
     await tagsService.UpdateTags();
 }
