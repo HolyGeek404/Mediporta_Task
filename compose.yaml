@@ -2,8 +2,8 @@
   website:
     image: tagwebsite
     build:
-      context: ./Website
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Website/Dockerfile
     ports:
       - "24091:24091"
     depends_on:
@@ -20,8 +20,8 @@
   tagapi:
     image: tagapi
     build:
-      context: ./WebApi
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: WebApi/Dockerfile
     ports:
       - "5154:5154"
     environment:
