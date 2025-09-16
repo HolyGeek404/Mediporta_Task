@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Model.DataAccess.Entities;
 using Model.DataAccess.Interfaces;
 using Model.DataTransfer;
@@ -19,6 +20,7 @@ namespace Model.Test.Unit
         private Mock<IHttpClientFactory> _httpClientFactoryMock;
         private Mock<IConfiguration> _configurationMock;
         private Mock<IRequestMessageBuilder> _requestMessageBuilderMock;
+        private Mock<ILogger<TagsService>> _loggerMock;
         private TagsService _service;
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private HttpClient _httpClient;
@@ -30,19 +32,26 @@ namespace Model.Test.Unit
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _configurationMock = new Mock<IConfiguration>();
             _requestMessageBuilderMock = new Mock<IRequestMessageBuilder>();
-            _httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Loose);
+            _loggerMock = new Mock<ILogger<TagsService>>();
 
+            _httpMessageHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Loose);
             _httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-            _httpClientFactoryMock.Setup(f => f.CreateClient("StackOverflow"))
+
+            _httpClientFactoryMock
+                .Setup(f => f.CreateClient("StackOverflow"))
                 .Returns(_httpClient);
-            _configurationMock.Setup(c => c.GetSection("SO")["ApiKey"])
+
+            _configurationMock
+                .Setup(c => c.GetSection("SO")["ApiKey"])
                 .Returns("dummyApiKey");
 
             _service = new TagsService(
                 _tagsDaoMock.Object,
                 _httpClientFactoryMock.Object,
                 _configurationMock.Object,
-                _requestMessageBuilderMock.Object);
+                _requestMessageBuilderMock.Object,
+                _loggerMock.Object // <-- dodany logger
+            );
         }
         
         [TearDown]

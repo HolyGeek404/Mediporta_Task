@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using Model.DataAccess;
@@ -33,6 +34,10 @@ public class TagsServiceIntegrationTests
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
 
+        // Mock logger
+        var loggerMock = new Mock<ILogger<TagsService>>();
+        services.AddSingleton(loggerMock.Object);
+
         var mockFactory = new Mock<IHttpClientFactory>();
         services.AddSingleton(mockFactory.Object);
 
@@ -45,8 +50,8 @@ public class TagsServiceIntegrationTests
         _serviceProvider = services.BuildServiceProvider();
 
         _context = _serviceProvider.GetRequiredService<TagsContext>();
-        _context.Database.OpenConnection(); 
-        _context.Database.EnsureCreated();  
+        _context.Database.OpenConnection();
+        _context.Database.EnsureCreated();
 
         _tagsService = _serviceProvider.GetRequiredService<ITagsService>();
     }
