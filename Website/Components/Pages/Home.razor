@@ -41,6 +41,7 @@
         }
     </select>
     <button class="btn btn-primary ms-3" @onclick="ReloadData">Zastosuj</button>
+    <button class="btn btn-danger ms-3" @onclick="RefreshTags">Odśwież baze tagów</button>
     
 </div>
 <div class="mb-3 d-flex align-items-center">
@@ -190,4 +191,9 @@
         Tags = await TagClient.GetTags(query);
     }
 
+    private async Task RefreshTags()
+    {
+        await TagClient.RefreshTags();
+        await ReloadData();
+    }
 }

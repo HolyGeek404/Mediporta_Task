@@ -27,4 +27,9 @@ public static class UrlBuilderHelper
                 $"&sort={sort}";
       return url;
    }
+
+   public static string BuildRefreshTagUrl()
+   {
+       return "tags/refresh";
+   }
 }  

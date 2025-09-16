@@ -6,4 +6,5 @@ namespace Website.Api;
 public interface ITagClient
 {
     Task<List<Tag>> GetTags(GetTagsQuery query);
+    Task<List<Tag>> RefreshTags();
 }
